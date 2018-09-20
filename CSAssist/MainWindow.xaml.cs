@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using CefSharp;
 using CefSharp.OffScreen;
+using CSAssist.Properties;
 
 namespace CSAssist
 {
@@ -82,8 +84,22 @@ namespace CSAssist
 
             browser = new ChromiumWebBrowser("")
             {
-            RequestHandler   = null 
+                RequestHandler = null
             };
+
+            browser.BrowserInitialized += Browser_BrowserInitialized;
+        }
+
+        private void Browser_BrowserInitialized(object sender, EventArgs e)
+        {
+            browser.Load("https://tweetdeck.twitter.com");
+
+            browser.ExecuteScriptAsync("document.getElementsByTagName('a')[0].click()");
+            Thread.Sleep(3000);
+            string id = Settings.Default.USERNAME, pw = Settings.Default.PASSWORD;
+            browser.ExecuteScriptAsync($"document.getElementsByClassName('js-username-field')[0].value = '{id}'");
+            browser.ExecuteScriptAsync($"document.getElementsByClassName('js-password-field')[0].value = '{pw}'");
+            browser.ExecuteScriptAsync($"document.getElementsByClassName('submit')[1].click()");
         }
     }
 }

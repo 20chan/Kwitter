@@ -27,6 +27,8 @@ namespace CSAssist
         CefSettings cefsettings;
         BrowserSettings browsersettings;
         ChromiumWebBrowser browser;
+        ChromeReqeustHandler reqhandler;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -82,12 +84,21 @@ namespace CSAssist
             Cef.Initialize(cefsettings, false, null);
             Cef.EnableHighDPISupport();
 
+            reqhandler = new ChromeReqeustHandler();
+            reqhandler.OnReceive += Reqhandler_OnReceive;
+
             browser = new ChromiumWebBrowser("")
             {
-                RequestHandler = null
+                
+                RequestHandler = reqhandler
             };
 
             browser.BrowserInitialized += Browser_BrowserInitialized;
+        }
+
+        private void Reqhandler_OnReceive(string obj)
+        {
+
         }
 
         private void Browser_BrowserInitialized(object sender, EventArgs e)

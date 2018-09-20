@@ -12,7 +12,7 @@
         <SolidColorBrush Opacity="0" Color="White" />
     </Window.Background>
     <Grid Name="mainGrid">
-        <cefSharp:ChromiumWebBrowser x:Name="browser"  />
+        <cefSharp:ChromiumWebBrowser x:Name="browser" Visibility="Hidden" />
         <local:ChatList x:Name="chatlist" />
     </Grid>
 </Window>

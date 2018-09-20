@@ -108,7 +108,7 @@ namespace CSAssist
 
         void InitCef()
         {
-            //Cef.Initialize(cefsettings, false, null);
+            Cef.Initialize(cefsettings, false, null);
             Cef.EnableHighDPISupport();
 
             reqhandler = new ChromeReqeustHandler();
@@ -137,7 +137,7 @@ namespace CSAssist
                 var json = JArray.Parse(obj);
                 foreach (var t in json)
                 {
-                    chatlist.Add("", t["full_text"].ToString());
+                    chatlist.Add(t["user"]["name"].ToString(), t["full_text"].ToString());
                 }
             });
         }

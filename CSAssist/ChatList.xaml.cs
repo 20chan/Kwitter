@@ -40,36 +40,12 @@ namespace CSAssist
 
             if (DesignerProperties.GetIsInDesignMode(this))
                 return;
-
-            var timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(100);
-            timer.Tick += Timer_Tick;
-            timer.Start();
-
-            r = new Random();
         }
-
-        int i = 0;
-        private void Timer_Tick(object sender, EventArgs e)
+        
+        public void Add(string name, string msg)
         {
-            Items.Add(new ChatViewModel { Name = $"이름{r.Next(200220000)}", Message = GetRandomMessage() });
+            Items.Add(new ChatViewModel { Name = name, Message = msg });
             scroller.ScrollToEnd();
-        }
-
-        Random r;
-        string[] msgPool = new string[] {
-            "안녕하세요~",
-            "ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ",
-            "ㅋㅋㅋ",
-            "윤제환 못생김",
-            "ㅎㅎ",
-            "ㅎㅇㅎㅇ",
-            "...",
-            "오홍홍",
-        };
-        string GetRandomMessage()
-        {
-            return msgPool[r.Next(msgPool.Length)];
         }
     }
 }

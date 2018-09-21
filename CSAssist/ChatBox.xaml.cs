@@ -21,6 +21,7 @@ namespace CSAssist
     /// </summary>
     public partial class ChatBox : UserControl
     {
+        public event Action AnywayMouseDown;
         public ChatBox()
         {
             InitializeComponent();
@@ -32,6 +33,11 @@ namespace CSAssist
         {
             var gap = this.ActualHeight - msg.ActualHeight;
             this.Height = msg.Height + gap;
+        }
+
+        private void Border_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            AnywayMouseDown?.Invoke();
         }
     }
 }

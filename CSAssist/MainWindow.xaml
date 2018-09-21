@@ -6,11 +6,11 @@
         xmlns:local="clr-namespace:CSAssist"
         mc:Ignorable="d"
         AllowsTransparency="True"
-        Title="MainWindow" Height="400.487" Width="646.694" WindowStyle="None">
+        Title="MainWindow" Height="500" Width="400" WindowStyle="None" >
     <Window.Background>
         <SolidColorBrush Opacity="0" Color="White" />
     </Window.Background>
     <Grid Name="mainGrid">
-        <local:ChatList x:Name="chatlist" />
+        <local:ChatList x:Name="chatlist" AnywayMouseDown="chatlist_AnywayMouseDown" />
     </Grid>
 </Window>

@@ -4,35 +4,41 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CSAssist"
-             mc:Ignorable="d"  Height="38.134" Width="306.144">
+             mc:Ignorable="d">
     <Border Padding="5">
         <Grid>
             <Border CornerRadius="10"
                     Padding="4"
-                    Background="White">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="60" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock
-                        Name="name"
-                        Grid.Column="0"
+                    MouseDown="Border_MouseDown">
+                <Grid MouseDown="Border_MouseDown">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <local:OutlinedTextBlock
+                        x:Name="name"
+                        Grid.Row="0"
                         VerticalAlignment ="Center"
                         TextWrapping="Wrap"
-                        Foreground="Black"
+                        Stroke="Black"
+                        StrokeThickness="1"
                         FontFamily="맑은 고딕"
-                        FontSize="15"
-                        Text="{Binding Name}"/>
-                    <TextBlock
-                        Name="msg"
-                        Grid.Column="1"
+                        FontSize="18"
+                        Fill="Green"
+                        MouseDown="Border_MouseDown"
+                        Text="{Binding Name}" FontWeight="Bold"/>
+                    <local:OutlinedTextBlock
+                        x:Name="msg"
+                        Grid.Row="1"
                         VerticalAlignment="Center"
                         TextWrapping="Wrap"
-                        Foreground="Blue"
+                        Stroke="Black"
+                        StrokeThickness="1"
+                        Fill="White"
                         FontFamily="맑은 고딕"
-                        FontSize="15"
+                        FontSize="18"
                         Height="Auto"
+                        MouseDown="Border_MouseDown"
                         Text="{Binding Message}"/>
                 </Grid>
             </Border>

@@ -23,18 +23,14 @@ namespace CSAssist
     /// </summary>
     public partial class ChatList : UserControl
     {
+        public int MaxItems { get; set; } = 50;
+        public event Action AnywayMouseDown;
         public ObservableCollection<ChatViewModel> Items { get; set; }
         public ChatList()
         {
             InitializeComponent();
 
-            Items = new ObservableCollection<ChatViewModel>()
-            {
-                new ChatViewModel { Name = "이름1", Message = "테스트" },
-                new ChatViewModel { Name = "핵간지짱짱이름", Message = "나는 핵 간지 짱짱 이름을 가졋다" },
-                new ChatViewModel { Name = "어", Message = "아주 긴 메시지 아주 긴 메시지 정말 메시지가 넘 길어" },
-                new ChatViewModel { Name = "짱구", Message = "메시지 메시지" },
-            };
+            Items = new ObservableCollection<ChatViewModel>();
 
             this.DataContext = this;
 
@@ -44,8 +40,15 @@ namespace CSAssist
         
         public void Add(string name, string msg)
         {
+            if (Items.Count == MaxItems)
+                Items.RemoveAt(0);
             Items.Add(new ChatViewModel { Name = name, Message = msg });
             scroller.ScrollToEnd();
+        }
+        
+        private void ChatBox_AnywayMouseDown()
+        {
+            AnywayMouseDown?.Invoke();
         }
     }
 }

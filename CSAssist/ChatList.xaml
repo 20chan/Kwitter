@@ -15,7 +15,7 @@
             <ItemsControl ItemsSource="{Binding Items}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <local:ChatBox />
+                        <local:ChatBox AnywayMouseDown="ChatBox_AnywayMouseDown" />
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

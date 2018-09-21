@@ -4,7 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CSAssist"
-        xmlns:cefSharp="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
         mc:Ignorable="d"
         AllowsTransparency="True"
         Title="MainWindow" Height="400.487" Width="646.694" WindowStyle="None">
@@ -12,7 +11,6 @@
         <SolidColorBrush Opacity="0" Color="White" />
     </Window.Background>
     <Grid Name="mainGrid">
-        <cefSharp:ChromiumWebBrowser x:Name="browser" Visibility="Hidden" />
         <local:ChatList x:Name="chatlist" />
     </Grid>
 </Window>

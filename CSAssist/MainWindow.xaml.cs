@@ -1,22 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Collections.ObjectModel;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using CefSharp;
-using CefSharp.Wpf;
+using CSAssist.Json;
 using CSAssist.Properties;
+using Fiddler;
 using Newtonsoft.Json.Linq;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using System.Diagnostics;
 
 namespace CSAssist
 {
@@ -25,133 +18,111 @@ namespace CSAssist
     /// </summary>
     public partial class MainWindow : Window
     {
-        CefSettings cefsettings;
-        BrowserSettings browsersettings;
-        ChromeReqeustHandler reqhandler;
-
-        bool loggedin = false;
-
+        ChromeDriver driver;
         public MainWindow()
         {
-            InitSettings();
-            InitCef();
             InitializeComponent();
-
-            browser.RequestHandler = reqhandler;
-            browser.IsBrowserInitializedChanged += Browser_IsBrowserInitializedChanged;
-            browser.FrameLoadEnd += Browser_FrameLoadEnd;
+            InitDriver();
+            Login();
         }
 
-        private void Browser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
+        void InitDriver()
         {
-            if (!loggedin)
+            var service = ChromeDriverService.CreateDefaultService();
+            service.HideCommandPromptWindow = true;
+            var options = new ChromeOptions()
             {
-                ThreadPool.QueueUserWorkItem((o) =>
+                Proxy = new OpenQA.Selenium.Proxy()
                 {
-                    Thread.Sleep(3000);
-                    browser.ExecuteScriptAsync("document.getElementsByTagName('a')[0].click()");
-                });
-            }
-
-            if (e.Url.StartsWith("https://twitter.com/login"))
-            {
-                string id = Settings.Default.USERNAME, pw = Settings.Default.PASSWORD;
-                browser.ExecuteScriptAsync($"document.getElementsByClassName('js-username-field')[0].value = '{id}'");
-                browser.ExecuteScriptAsync($"document.getElementsByClassName('js-password-field')[0].value = '{pw}'");
-                browser.ExecuteScriptAsync($"document.getElementsByClassName('submit')[1].click()");
-                loggedin = true;
-            }
-        }
-
-        void InitSettings()
-        {
-            cefsettings = new CefSettings
-            {
-                CachePath = null,
-                LogSeverity = LogSeverity.Disable,
-                LogFile = null,
-                WindowlessRenderingEnabled = true,
-                CefCommandLineArgs =
-                {
-                    { "no-proxy-server"          , "1" },
-                    { "mute-audio"               , "1" },
-                    { "disable-application-cache", "1" },
-                    { "disable-extensions"       , "1" },
-                    { "disable-features"         , "AsyncWheelEvents,TouchpadAndWheelScrollLatching" },
-                    { "disable-gpu"              , "1" },
-                    { "disable-gpu-vsync"        , "1" },
-                    { "disable-gpu-compositing"  , "1" },
+                    HttpProxy = "localhost:8880",
+                    SslProxy = "localhost:8880"
                 }
             };
-            cefsettings.DisableGpuAcceleration();
-            cefsettings.SetOffScreenRenderingBestPerformanceArgs();
+            driver = new ChromeDriver(service, options);
 
-            browsersettings = new BrowserSettings()
-            {
-                DefaultEncoding = "UTF-8",
-                WebGl = CefState.Disabled,
-                Plugins = CefState.Disabled,
-                JavascriptAccessClipboard = CefState.Disabled,
-                ImageLoading = CefState.Disabled,
-                JavascriptCloseWindows = CefState.Disabled,
-                ApplicationCache = CefState.Disabled,
-                RemoteFonts = CefState.Disabled,
-                WindowlessFrameRate = 1,
-                Databases = CefState.Disabled,
-            };
-
-            CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
-            CefSharpSettings.ShutdownOnExit = true;
-            CefSharpSettings.WcfEnabled = false;
-            CefSharpSettings.Proxy = null;
+            FiddlerApplication.BeforeResponse += FiddlerApplication_BeforeResponse;
+            FiddlerApplication.Startup(8880, false, true);
         }
 
-        void InitCef()
+        void Login()
         {
-            Cef.Initialize(cefsettings, false, null);
-            Cef.EnableHighDPISupport();
+            driver.Url = "https://tweetdeck.twitter.com";
+            WaitUntilLoadOne(By.TagName("a")).Click();
 
-            reqhandler = new ChromeReqeustHandler();
-            reqhandler.OnReceive += Reqhandler_OnReceive;
+            WaitUntilLoadOne(By.ClassName("js-username-field"))
+                .SendKeys(Settings.Default.USERNAME);
+            driver.FindElementByClassName("js-password-field")
+                .SendKeys(Settings.Default.PASSWORD);
+            driver.FindElementsByClassName("submit")[1]
+                .Click();
         }
 
-        private void Browser_IsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e)
+        ReadOnlyCollection<IWebElement> WaitUntilLoad(By option)
         {
-            if (browser.IsInitialized)
+            while (true)
             {
-                browser.Load("https://tweetdeck.twitter.com");
+                var elems = driver.FindElements(option);
+                if (elems.Count > 0)
+                    return elems;
 
-                browser.ExecuteScriptAsync("document.getElementsByTagName('a')[0].click()");
-                Thread.Sleep(3000);
-                string id = Settings.Default.USERNAME, pw = Settings.Default.PASSWORD;
-                browser.ExecuteScriptAsync($"document.getElementsByClassName('js-username-field')[0].value = '{id}'");
-                browser.ExecuteScriptAsync($"document.getElementsByClassName('js-password-field')[0].value = '{pw}'");
-                browser.ExecuteScriptAsync($"document.getElementsByClassName('submit')[1].click()");
+                Thread.Sleep(100);
             }
         }
 
-        private void Reqhandler_OnReceive(string obj)
+        IWebElement WaitUntilLoadOne(By option)
+            => WaitUntilLoad(option)[0];
+
+        long lastStatus;
+        private void FiddlerApplication_BeforeResponse(Session oSession)
+        {
+            if (oSession.RequestMethod == "GET")
+            {
+                var body = oSession.GetResponseBodyAsString();
+                Debug.WriteLine(body);
+                if (Uri.TryCreate(oSession.fullUrl, UriKind.Absolute, out var url))
+                {
+                    if (url.AbsolutePath == "/1.1/statuses/home_timeline.json")
+                    {
+                        if (oSession.responseCode == 200)
+                        {
+                            try
+                            {
+                                //var body = oSession.GetResponseBodyAsString();
+                                var json = JToken.Parse(body);
+                                var statuses = json.ToObject<TStatuses>()
+                                    .Where(i => lastStatus < i.ID)
+                                    .OrderBy(i => i.ID);
+
+                                long max = lastStatus;
+
+                                if (statuses.Count() == 0)
+                                    return;
+                                if (lastStatus == 0)
+                                    max = statuses.Last().ID;
+                                else
+                                {
+                                    foreach (var s in statuses)
+                                    {
+                                        StatusUpdated(s);
+                                        max = Math.Max(max, s.ID);
+                                    }
+                                }
+
+                                lastStatus = max;
+                            }
+                            catch { }
+                        }
+                    }
+                }
+            }
+        }
+
+        void StatusUpdated(TStatus status)
         {
             Dispatcher.Invoke(() =>
             {
-                var json = JArray.Parse(obj);
-                foreach (var t in json)
-                {
-                    chatlist.Add(t["user"]["name"].ToString(), t["full_text"].ToString());
-                }
+                chatlist.Add(status.User.UserName, status.Text);
             });
-        }
-
-        private void Browser_BrowserInitialized(object sender, EventArgs e)
-        {
-            browser.Load("https://tweetdeck.twitter.com");
-
-            browser.ExecuteScriptAsync("document.getElementsByTagName('a')[0].click()");
-            Thread.Sleep(3000);
-            string id = Settings.Default.USERNAME, pw = Settings.Default.PASSWORD;
-            browser.ExecuteScriptAsync($"document.getElementsByClassName('js-username-field')[0].value = '{id}'");
-            browser.ExecuteScriptAsync($"document.getElementsByClassName('js-password-field')[0].value = '{pw}'");
-            browser.ExecuteScriptAsync($"document.getElementsByClassName('submit')[1].click()");
         }
     }
 }

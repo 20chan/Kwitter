@@ -30,9 +30,9 @@ namespace CSAssist
         {
             InitializeComponent();
 
-            //InitDriver();
+            InitDriver();
             InitProxy();
-            //Login();
+            Login();
             
             this.Closed += MainWindow_Closed;
             this.Deactivated += MainWindow_Deactivated;
@@ -42,6 +42,7 @@ namespace CSAssist
         {
             this.Topmost = true;
             this.Activate();
+            
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -103,13 +104,11 @@ namespace CSAssist
                                     return;
                                 if (lastStatus == 0)
                                     max = statuses.Last().ID;
-                                else
+
+                                foreach (var s in statuses)
                                 {
-                                    foreach (var s in statuses)
-                                    {
-                                        StatusUpdated(s);
-                                        max = Math.Max(max, s.ID);
-                                    }
+                                    StatusUpdated(s);
+                                    max = Math.Max(max, s.ID);
                                 }
 
                                 lastStatus = max;
